@@ -64,7 +64,7 @@ describe('Lisp Interpreter', () => {
     });
 });
 
-describe('Test equals', () => {
+describe('Test logic builtins', () => {
     it('test equality', () => {
 
 
@@ -74,6 +74,71 @@ describe('Test equals', () => {
         (define x 3)
         (define y 3)
         (test 3 (== x y))
+        `;
+        tokenizer.parseTokens(test);
+        parser.parseTokens(tokenizer.tokens);
+
+        runner.run(parser.ast);
+        expect(testValues['3']).toBe(true);
+    });
+
+    it('test greater then', () => {
+
+
+        tokenizer = new Tokenizer();
+
+        let test = `
+        (define x 3)
+        (define y 2)
+        (test 3 (>= x y))
+        `;
+        tokenizer.parseTokens(test);
+        parser.parseTokens(tokenizer.tokens);
+
+        runner.run(parser.ast);
+        expect(testValues['3']).toBe(true);
+    });
+
+    it('test less then', () => {
+
+        tokenizer = new Tokenizer();
+
+        let test = `
+        (define x 3)
+        (define y 2)
+        (test 3 (<= x y))
+        `;
+        tokenizer.parseTokens(test);
+        parser.parseTokens(tokenizer.tokens);
+
+        runner.run(parser.ast);
+        expect(testValues['3']).toBe(false);
+    });
+
+    it('test less then', () => {
+
+        tokenizer = new Tokenizer();
+
+        let test = `
+        (define x 3)
+        (define y 4)
+        (test 3 (<= x y))
+        `;
+        tokenizer.parseTokens(test);
+        parser.parseTokens(tokenizer.tokens);
+
+        runner.run(parser.ast);
+        expect(testValues['3']).toBe(true);
+    });
+
+    it('test less then', () => {
+
+        tokenizer = new Tokenizer();
+
+        let test = `
+        (define x 4)
+        (define y 4)
+        (test 3 (<= x y))
         `;
         tokenizer.parseTokens(test);
         parser.parseTokens(tokenizer.tokens);

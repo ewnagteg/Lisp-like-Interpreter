@@ -196,6 +196,10 @@ export function defaultBuiltins() {
     builtins.set("==", new EqualsBuiltin());
     builtins.set(">", new GreaterThenBuiltin());
 
+    builtins.set("<", new LessThenBuiltin());
+    builtins.set(">=", new GreaterEqualThenBuiltin());
+    builtins.set("<=", new LessThenEqualBuiltin());
+
     return builtins;
 }
 
