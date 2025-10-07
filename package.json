@@ -1,0 +1,30 @@
+{
+  "name": "lisp",
+  "version": "1.0.0",
+  "description": "simple list interpreter",
+  "main": "index.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "build:ts": "tsc",
+    "build:views": "npm run copy-views",
+    "copy-views": "node copy-views.js",
+    "build": "npm run build:ts && npm run build:views",
+    "test": "vitest",
+    "start": "node ./dist/index.js"
+  },
+  "author": "",
+  "type": "module",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^5.1.0",
+    "http": "^0.0.1-security",
+    "path": "^0.12.7"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.3",
+    "@types/node": "^24.3.1",
+    "vitest": "^3.2.4"
+  }
+}

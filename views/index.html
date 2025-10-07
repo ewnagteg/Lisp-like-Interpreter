@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>Lisp Interpreter</title>
+</head>
+
+<body>
+  <h1>Lisp Interpreter</h1>
+  <textarea id="expr" rows="8" cols="60">
+    (lambda fact (n)
+        (if (> n 0)
+            (begin
+                (* n (fact (- n 1)))
+            )
+            (1)
+        )
+    )
+    (print (fact 5))
+</textarea>
+  <button onclick="run()">Run</button>
+  <pre id="output"></pre>
+  <script type="module">
+    import { Tokenizer } from '../lexer.js';
+    import { Parser } from '../parser.js';
+    import { Runner } from '../runner.js';
+    import { BuiltinFunction, defaultBuiltins, defaultSpecialForms } from '../env.js';
+
+    function evaluate(text) {
+      let t = new Tokenizer();
+      t.parseTokens(text);
+      let p = new Parser();
+      p.parseTokens(t.tokens);
+
+      let runner = new Runner(defaultBuiltins(), defaultSpecialForms());
+      runner.run(p.ast);
+      return '';
+    }
+
+    window.run = function () {
+      const expr = document.getElementById('expr').value;
+      const result = evaluate(expr);
+      document.getElementById('output').textContent = result;
+    }
+  </script>
+</body>
+
+</html>
