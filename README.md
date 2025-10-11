@@ -5,7 +5,7 @@ Supports basic arithmetic, lambdas, conditionals, and extensible builtins.
 
 ## Features
 
-- Basic Lisp syntax: `(+ 1 2)`, `(if (> x 0) x 0)`, `(lambda (x) (* x x))`
+- Basic Lisp syntax: `(+ 1 2)`, `(if (> x 0) (x) (0))`, `(lambda (x) (* x x))`, `(print x) (begin (print x) (print y))`
 - Customizable builtins
 - Extensible with new types and forms
 - Runs in browser and Node.js
@@ -35,10 +35,7 @@ npm test
 ```bash
 npm start
 ```
-or
-```bash
-npm run dev
-```
+
 
 Then open [http://localhost:3000](http://localhost:3000) in your browser.
 
