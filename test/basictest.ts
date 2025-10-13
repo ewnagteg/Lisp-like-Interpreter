@@ -167,6 +167,26 @@ describe('test lambda', () => {
         runner.run(parser.ast);
         expect(testValues['1']).toBe(120);
     });
+
+    it('test lambda assigment', () => {
+        let test = `
+        (lambda fact (n)
+            (if (> n 0)
+                (begin
+                    (* n (fact (- n 1)))
+                )
+                (1)
+            )
+        )
+        (define x fact)
+        (test 1 (x 5))
+        `;
+        tokenizer.parseTokens(test);
+        parser.parseTokens(tokenizer.tokens);
+
+        runner.run(parser.ast);
+        expect(testValues['1']).toBe(120);
+    });
 });
 
 describe('test if', () => {

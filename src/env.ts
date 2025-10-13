@@ -1,4 +1,4 @@
-import { FunctionValue, ListNode, SymbolNode, Value } from "./parser.js";
+import { FunctionValue, ListNode, SymbolNode, Value, ValueNode } from "./parser.js";
 import { Runner } from "./runner.js";
 
 export enum Keywords {
@@ -29,8 +29,11 @@ class DefineForm extends SpecialForm {
             throw new Error('Define requires at least 3 nodes');
         const symbol = node.children[1];
         const value = node.children[2];
-
-        context.bind(symbol.name, value.name);
+        if (value instanceof SymbolNode) {
+            context.bind(symbol.name, context.lookup(value.name));
+        } else {
+            context.bind(symbol.name, value.name);
+        }
         return value.name;
     }
 }
