@@ -15,7 +15,7 @@ export class SymbolNode extends Node {
 }
 
 export class ValueNode extends Node {
-
+    isNumber: boolean = false;
 }
 
 export class KeywordNode extends Node {
@@ -73,6 +73,7 @@ export class Parser {
                     }
                 } else if (current.type === Tokens.NUMBER) {
                     node = new ValueNode(String(current.value)); // probably number, not string
+                    (<ValueNode> node).isNumber = true;
                 } else if (current.type === Tokens.OPERATOR) {
                     node = new SymbolNode(String(current.value));
                 } else {
