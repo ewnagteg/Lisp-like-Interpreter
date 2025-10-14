@@ -5,7 +5,8 @@ export enum Keywords {
     DEFINE = "define",
     IF = "if",
     LAMBDA = 'lambda',
-    BEGIN = 'begin'
+    BEGIN = 'begin',
+    LIST = 'list'
 }
 
 export class BuiltinFunction {
@@ -31,6 +32,8 @@ class DefineForm extends SpecialForm {
         const value = node.children[2];
         if (value instanceof SymbolNode) {
             context.bind(symbol.name, context.lookup(value.name));
+        } else if (value instanceof ListNode) {
+            context.bind(symbol.name, runner.eval(value, context));
         } else {
             context.bind(symbol.name, value.name);
         }
@@ -100,13 +103,38 @@ class BeginForm extends SpecialForm {
     }
 }
 
+class ListForm extends SpecialForm {
+    call(node: ListNode, context: Closure, runner: Runner): Value {
+        // so we can push pop without messing with ast
+        let clone = new ListNode('__builtin__');
+        for (let i = 1; i < node.children.length; i++) {
+            clone.children.push(node.children[i]);
+        }
+        return clone;
+    }
+}
 
 //
 // Define Builtin Functions
 // 
 class PrintBuiltin extends BuiltinFunction {
     call(args: Value[], context: Closure, runner: Runner): Value {
-        console.log(...args.map(arg => arg.toString()));
+        let output = '';
+        for (let node of args) {
+            if (node instanceof ListNode) {
+                for (let child of node.children) {
+                    let childValue = runner.eval(child, context);
+                    output += childValue.toString() + " ";
+                }
+
+            } else if (!(node instanceof FunctionValue)) {
+                output += node.toString();
+            } else {
+                throw new Error('Cannot print a function');
+            }
+            output += " ";
+        }
+        console.log(output);
         return args.length > 0 ? args[args.length - 1] : null;
     }
 }
@@ -188,6 +216,19 @@ class LessThenEqualBuiltin extends BuiltinFunction {
     }
 }
 
+class nthBuiltin extends BuiltinFunction {
+    call(args: Value[], context: Closure, runner: Runner): Value {
+        if (args.length < 2) 
+            throw new Error('Invalid number of arguements')
+        let list = args[1];
+        if (!(list instanceof ListNode)) {
+            throw new Error('Cannot access nth element from non list element');
+        }
+        const nth = Number(args[0])
+        return runner.eval(list.children[nth], context);
+    }
+}
+
 export function defaultBuiltins() {
     let builtins = new Map<string, BuiltinFunction>();
 
@@ -203,6 +244,8 @@ export function defaultBuiltins() {
     builtins.set(">=", new GreaterEqualThenBuiltin());
     builtins.set("<=", new LessThenEqualBuiltin());
 
+    builtins.set("nth", new nthBuiltin());
+
     return builtins;
 }
 
@@ -214,12 +257,13 @@ export function defaultSpecialForms() {
     forms.set(Keywords.IF, new IfForm());
     forms.set(Keywords.LAMBDA, new LambdaForm());
     forms.set(Keywords.BEGIN, new BeginForm());
+    forms.set(Keywords.LIST, new ListForm());
     return forms;
 }
 
 export class Closure {
     parent: Closure | null;
-    variables: Map<string, Value>;
+    variables: Map<string, Value | ListNode>;
     constructor(parent: Closure | null) {
         this.variables = new Map<string, Value>();
         this.parent = parent;

@@ -201,3 +201,20 @@ describe('test if', () => {
         expect(testValues['1']).toBe('1');
     });
 });
+
+describe('test lists', () => {
+    it('test list ', () => {
+        let test = `
+        (define z 2)
+        (define x (list 3 z 3))
+        (define y x)
+        (test 1 (nth 1 y))
+        `;
+        tokenizer.parseTokens(test);
+        parser.parseTokens(tokenizer.tokens);
+
+        runner.run(parser.ast);
+        expect(testValues['1']).toBe('2');
+    });
+});
+

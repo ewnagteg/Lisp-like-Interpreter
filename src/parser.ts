@@ -1,10 +1,11 @@
 import { Closure, Keywords } from "./env.js";
 import { Token, Tokens } from "./lexer.js";
 
-export type Value = number | string | boolean | FunctionValue;
+export type Value = number | string | boolean | FunctionValue | ListNode;
 
 export class Node {
     name: string;
+    line: number;
     constructor(name: string) {
         this.name = name;
     }
@@ -16,6 +17,9 @@ export class SymbolNode extends Node {
 
 export class ValueNode extends Node {
     isNumber: boolean = false;
+    toString() {
+        return this.name;
+    }
 }
 
 export class KeywordNode extends Node {
@@ -25,7 +29,6 @@ export class KeywordNode extends Node {
 
 export class ListNode extends Node {
     children: (SymbolNode | ValueNode | ListNode)[] = []
-
 }
 
 export class AST {
