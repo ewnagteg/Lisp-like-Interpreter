@@ -4,9 +4,11 @@ import { Node, AST, Value, SymbolNode, ValueNode, ListNode, FunctionValue } from
 export class Runner {
     builtinsMap: Map<string, BuiltinFunction>;
     formsMap: Map<string, SpecialForm>;
-    constructor(builtinsMap: Map<string, BuiltinFunction>, formsMap: Map<string, SpecialForm>) {
+    lineMap: Map<number, string>;
+    constructor(builtinsMap: Map<string, BuiltinFunction>, formsMap: Map<string, SpecialForm>, lineMap: Map<number, string>) {
         this.builtinsMap = builtinsMap;
         this.formsMap = formsMap;
+        this.lineMap = lineMap;
     }
 
     run(ast: AST) {
@@ -14,7 +16,17 @@ export class Runner {
         if (ast.children.length == 0)
             return;
         for (let node of ast.children) {
-            this.eval(node, global);
+            try {
+                this.eval(node, global);
+            } catch (e: unknown) {
+                if (e instanceof Error) {
+                    console.error("Error name:", e.name);
+                    console.error("Error message:", e.message);
+                    console.error("Error line: " + this.lineMap.get(node.line));
+                } else {
+                    console.error("An unknown error occurred:", e);
+                }
+            }
         }
     }
 

@@ -32,7 +32,7 @@
       let p = new Parser();
       p.parseTokens(t.tokens);
 
-      let runner = new Runner(defaultBuiltins(), defaultSpecialForms());
+      let runner = new Runner(defaultBuiltins(), defaultSpecialForms(), t.lineMap);
       runner.run(p.ast);
       return '';
     }

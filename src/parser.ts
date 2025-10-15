@@ -6,8 +6,10 @@ export type Value = number | string | boolean | FunctionValue | ListNode;
 export class Node {
     name: string;
     line: number;
-    constructor(name: string) {
+    constructor(name: string, line?: number) {
         this.name = name;
+        if (line || line == 0)
+            this.line = line;
     }
 }
 
@@ -53,8 +55,9 @@ export class Parser {
         let ast: Node[] = [];
         this.ast = new AST();
         while (current.type !== Tokens.EOF) {
+            const line = current.line;
             if (current.type === Tokens.LEFT_PAREN) {
-                let listNode = new ListNode('ListNode');
+                let listNode = new ListNode('ListNode', line);
                 stack.push(listNode);
             }
             else if (current.type === Tokens.RIGHT_PAREN) {
@@ -70,15 +73,15 @@ export class Parser {
                 let node: Node;
                 if (current.type === Tokens.WORD) {
                     if (isKeyword(String(current.value))) {
-                        node = new KeywordNode(String(current.value));
+                        node = new KeywordNode(String(current.value), line);
                     } else {
-                        node = new SymbolNode(String(current.value));
+                        node = new SymbolNode(String(current.value), line);
                     }
                 } else if (current.type === Tokens.NUMBER) {
-                    node = new ValueNode(String(current.value)); // probably number, not string
+                    node = new ValueNode(String(current.value), line); // probably number, not string
                     (<ValueNode> node).isNumber = true;
                 } else if (current.type === Tokens.OPERATOR) {
-                    node = new SymbolNode(String(current.value));
+                    node = new SymbolNode(String(current.value), line);
                 } else {
                     throw new Error("Unexpected token " + current.type);
                 }
