@@ -37,7 +37,7 @@ npm start
 ```
 
 
-Then open [http://localhost:3000](http://localhost:3000) in your browser.
+Then open [http://localhost:3000](http://localhost:8000) in your browser.
 
 ## Usage
 
@@ -47,8 +47,10 @@ Then open [http://localhost:3000](http://localhost:3000) in your browser.
 
 ## Todo
 
-- Add exception handling
+- Add exception handling stack trace
 - Add support for more types (lists, strings)
+- Add `setf`, `sort`
+- Add comments support
 
 ## License
 
