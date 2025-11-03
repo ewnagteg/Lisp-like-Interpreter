@@ -24,7 +24,7 @@ beforeAll(() => {
     parser = new Parser();
     let builtins = defaultBuiltins();
     builtins.set("test", new TestBuiltin());
-    runner = new Runner(builtins, defaultSpecialForms());
+    runner = new Runner(builtins, defaultSpecialForms(), tokenizer.lineMap);
 });
 
 describe('Lisp Interpreter', () => {
