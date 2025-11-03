@@ -218,3 +218,30 @@ describe('test lists', () => {
     });
 });
 
+describe('test setf', () => {
+    it('test setf list', () => {
+        let test = `
+        (define x (list 1 1 3))
+        (setf (nth 1 x) 3)
+        (test 1 (nth 1 x))
+        `;
+        tokenizer.parseTokens(test);
+        parser.parseTokens(tokenizer.tokens);
+
+        runner.run(parser.ast);
+        expect(testValues['1']).toBe('3');
+    });
+
+    it('test setf variable', () => {
+        let test = `
+        (define x 3)
+        (setf x 45)
+        (test 1 x)
+        `;
+        tokenizer.parseTokens(test);
+        parser.parseTokens(tokenizer.tokens);
+
+        runner.run(parser.ast);
+        expect(testValues['1']).toBe('45');
+    });
+});

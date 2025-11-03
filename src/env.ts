@@ -6,7 +6,8 @@ export enum Keywords {
     IF = "if",
     LAMBDA = 'lambda',
     BEGIN = 'begin',
-    LIST = 'list'
+    LIST = 'list',
+    SETF = 'setf'
 }
 
 export class BuiltinFunction {
@@ -19,6 +20,17 @@ export class SpecialForm {
     call(node: ListNode, context: Closure, runner: Runner): Value {
         throw new Error('Not implemented');
     }
+}
+
+// coerce a value to a valid node
+export function wrapValue(value: Value): ListNode | ValueNode {
+    if (value instanceof ListNode)
+        return value;
+    if (typeof value === "string" || typeof value === "number")
+        return new ValueNode(String(value), 0);
+    if (value instanceof ValueNode)
+        return value;
+    throw new Error("wrapValue: unsupported type " + typeof value);
 }
 
 //
@@ -111,6 +123,38 @@ class ListForm extends SpecialForm {
             clone.children.push(node.children[i]);
         }
         return clone;
+    }
+}
+
+class SetfForm extends SpecialForm {
+    call(node: ListNode, context: Closure, runner: Runner): Value {
+        if (node.children.length !== 3)
+            throw new Error('(setf target value)');
+        const target = node.children[1];
+        const value = runner.eval(node.children[2], context);
+
+        if (target instanceof SymbolNode) {
+            context.bind(target.name, value);
+        } else if (target instanceof ListNode && target.children[0].name === 'nth') {
+            if (target.children.length < 3)
+                throw new Error('invalid number of children for nth');
+
+            const index = Number(target.children[1]);
+            const targetListNode = target.children[2];
+            const targetList = targetListNode instanceof ListNode ? targetListNode : runner.eval(targetListNode, context);
+            if (!(targetList instanceof ListNode))
+                throw new Error('Can not setf with nth on non List type');
+            const lineNumber = targetList.line;
+            const valueNode = wrapValue(value);
+            targetList.children[index] = valueNode;
+            targetList.children[index].line = lineNumber;
+        } else {
+            // unimplmented targets would hit this
+            // so todo stuff would get this error
+            throw new Error('Invalid target for setf');
+        }
+
+        return value;
     }
 }
 
@@ -258,6 +302,7 @@ export function defaultSpecialForms() {
     forms.set(Keywords.LAMBDA, new LambdaForm());
     forms.set(Keywords.BEGIN, new BeginForm());
     forms.set(Keywords.LIST, new ListForm());
+    forms.set(Keywords.SETF, new SetfForm());
     return forms;
 }
 
