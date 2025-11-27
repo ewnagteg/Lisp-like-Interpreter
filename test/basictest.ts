@@ -10,7 +10,7 @@ let runner: Runner;
 let testValues: { [name: string]: Value } = {};
 
 class TestBuiltin extends BuiltinFunction {
-    call(args: Value[], context: Closure, runner: Runner): Value {
+    call(args: Value[]): Value {
         if (args.length != 2) {
             throw new Error(`Invalid number of arguements for test builtin: ${args.length}`);
         }

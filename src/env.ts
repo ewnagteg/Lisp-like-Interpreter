@@ -7,11 +7,13 @@ export enum Keywords {
     LAMBDA = 'lambda',
     BEGIN = 'begin',
     LIST = 'list',
-    SETF = 'setf'
+    SETF = 'setf',
+    PRINT = 'print',
+    NTH = 'nth'
 }
 
 export class BuiltinFunction {
-    call(args: Value[], context: Closure, runner: Runner): Value {
+    call(args: Value[]): Value {
         throw new Error('Not implemented');
     }
 }
@@ -161,10 +163,11 @@ class SetfForm extends SpecialForm {
 //
 // Define Builtin Functions
 // 
-class PrintBuiltin extends BuiltinFunction {
-    call(args: Value[], context: Closure, runner: Runner): Value {
+class PrintBuiltin extends SpecialForm {
+    call(listnode: ListNode, context: Closure, runner: Runner): Value {
         let output = '';
-        for (let node of args) {
+
+        for (let node of listnode.children) {
             if (node instanceof ListNode) {
                 for (let child of node.children) {
                     let childValue = runner.eval(child, context);
@@ -179,19 +182,43 @@ class PrintBuiltin extends BuiltinFunction {
             output += " ";
         }
         console.log(output);
-        return args.length > 0 ? args[args.length - 1] : null;
+        return listnode.children.length > 0 ? runner.eval(listnode.children[listnode.children.length - 1], context) : 0;
+    }
+}
+
+class nthBuiltin extends SpecialForm {
+    call(listnode: ListNode, context: Closure, runner: Runner): Value {
+        if (listnode.children.length !== 3)
+            throw new Error("nth takes exactly 2 arguments");
+
+        const idxNode = listnode.children[1];
+        const listExpr = listnode.children[2];
+
+        const idxVal = runner.eval(idxNode, context);
+        const idx = Number(idxVal);
+        if (isNaN(idx))
+            throw new Error("nth: index must be a number");
+
+        const list = runner.eval(listExpr, context);
+        if (!(list instanceof ListNode))
+            throw new Error("nth: second argument must evaluate to a list");
+
+        if (idx < 0 || idx >= list.children.length)
+            throw new Error("nth: index out of bounds");
+
+        return runner.eval(list.children[idx], context);
     }
 }
 
 class AddBuiltin extends BuiltinFunction {
-    call(args: Value[], context: Closure, runner: Runner): Value {
+    call(args: Value[]): Value {
         let sum = args.reduce((acc, val) => Number(acc) + Number(val), 0);
         return sum;
     }
 }
 
 class SubtractBuiltin extends BuiltinFunction {
-    call(args: Value[], context: Closure, runner: Runner): Value {
+    call(args: Value[]): Value {
         if (args.length < 2) throw new Error(`Invalid number of args for - ${args.length}`);
         const first = Number(args[0]);
         return args.slice(1).reduce((acc, val) => Number(acc) - Number(val), first);
@@ -199,21 +226,21 @@ class SubtractBuiltin extends BuiltinFunction {
 }
 
 class MultBuiltin extends BuiltinFunction {
-    call(args: Value[], context: Closure, runner: Runner): Value {
+    call(args: Value[]): Value {
         let sum = args.reduce((acc, val) => Number(acc) * Number(val), 1);
         return sum;
     }
 }
 
 class DivBuiltin extends BuiltinFunction {
-    call(args: Value[], context: Closure, runner: Runner): Value {
+    call(args: Value[]): Value {
         let sum = args.reduce((acc, val) => Number(acc) / Number(val), 1);
         return sum;
     }
 }
 
 class EqualsBuiltin extends BuiltinFunction {
-    call(args: Value[], context: Closure, runner: Runner): Value {
+    call(args: Value[]): Value {
         if (args.length < 2) throw new Error(`Invalid number of args for == ${args.length}`);
         const first = args[0];
         return args.every(val => val === first);
@@ -221,7 +248,7 @@ class EqualsBuiltin extends BuiltinFunction {
 }
 
 class GreaterThenBuiltin extends BuiltinFunction {
-    call(args: Value[], context: Closure, runner: Runner): Value {
+    call(args: Value[]): Value {
         if (args.length < 2) throw new Error(`Invalid number of args for > ${args.length}`);
         for (let i = 0; i < args.length - 1; i++) {
             if (!(Number(args[i]) > Number(args[i + 1]))) return false;
@@ -231,7 +258,7 @@ class GreaterThenBuiltin extends BuiltinFunction {
 }
 
 class LessThenBuiltin extends BuiltinFunction {
-    call(args: Value[], context: Closure, runner: Runner): Value {
+    call(args: Value[]): Value {
         if (args.length < 2) throw new Error(`Invalid number of args for > ${args.length}`);
         for (let i = 0; i < args.length - 1; i++) {
             if (!(Number(args[i]) < Number(args[i + 1]))) return false;
@@ -241,7 +268,7 @@ class LessThenBuiltin extends BuiltinFunction {
 }
 
 class GreaterEqualThenBuiltin extends BuiltinFunction {
-    call(args: Value[], context: Closure, runner: Runner): Value {
+    call(args: Value[]): Value {
         if (args.length < 2) throw new Error(`Invalid number of args for > ${args.length}`);
         for (let i = 0; i < args.length - 1; i++) {
             if (!(Number(args[i]) >= Number(args[i + 1]))) return false;
@@ -251,7 +278,7 @@ class GreaterEqualThenBuiltin extends BuiltinFunction {
 }
 
 class LessThenEqualBuiltin extends BuiltinFunction {
-    call(args: Value[], context: Closure, runner: Runner): Value {
+    call(args: Value[]): Value {
         if (args.length < 2) throw new Error(`Invalid number of args for > ${args.length}`);
         for (let i = 0; i < args.length - 1; i++) {
             if (!(Number(args[i]) <= Number(args[i + 1]))) return false;
@@ -260,23 +287,11 @@ class LessThenEqualBuiltin extends BuiltinFunction {
     }
 }
 
-class nthBuiltin extends BuiltinFunction {
-    call(args: Value[], context: Closure, runner: Runner): Value {
-        if (args.length < 2) 
-            throw new Error('Invalid number of arguements')
-        let list = args[1];
-        if (!(list instanceof ListNode)) {
-            throw new Error('Cannot access nth element from non list element');
-        }
-        const nth = Number(args[0])
-        return runner.eval(list.children[nth], context);
-    }
-}
+
 
 export function defaultBuiltins() {
     let builtins = new Map<string, BuiltinFunction>();
 
-    builtins.set("print", new PrintBuiltin());
     builtins.set("+", new AddBuiltin());
     builtins.set("-", new SubtractBuiltin());
     builtins.set("*", new MultBuiltin());
@@ -288,7 +303,6 @@ export function defaultBuiltins() {
     builtins.set(">=", new GreaterEqualThenBuiltin());
     builtins.set("<=", new LessThenEqualBuiltin());
 
-    builtins.set("nth", new nthBuiltin());
 
     return builtins;
 }
@@ -297,6 +311,9 @@ export function defaultBuiltins() {
 
 export function defaultSpecialForms() {
     let forms = new Map<string, SpecialForm>();
+    forms.set(Keywords.PRINT, new PrintBuiltin());
+    forms.set(Keywords.NTH, new nthBuiltin());
+
     forms.set(Keywords.DEFINE, new DefineForm());
     forms.set(Keywords.IF, new IfForm());
     forms.set(Keywords.LAMBDA, new LambdaForm());
